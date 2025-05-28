@@ -1,15 +1,74 @@
 ---
 id: clear-state
-title: "Clear Contract State"
+title: "Contract State Cleaner"
 ---
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import {Github} from "@site/src/components/codetabs";
 
 
-This simple command-line tool allows you to clean up the state of a NEAR account without deleting it.
+In NEAR blockchain, the contract state is persisted across redeployments.
+If the structure of the contract has changed — for example, if a variable type is modified or new fields are added — the old version of the data may become incompatible.
+This can lead to deserialization errors, such as:
 
-## How it works
+```bash
+Smart contract panicked: Cannot deserialize the contract state.
+````
+
+Additionally, if the contract uses an initialization function (#[init]), it cannot be called again unless the state is cleared.
+This makes it impossible to reinitialize a contract without removing its existing state.
+
+### Why Manual Clearing Often Doesn’t Work
+Another challenge arises with large contracts that store a significant number of keys or data entries.
+Every operation that deletes a storage key consumes gas, and there is a strict limit on the maximum gas that can be used in a single transaction.
+
+As a result, fully clearing the state manually is often not feasible, especially for contracts with complex or large data sets.
+This limitation makes it impractical to rely on internal cleanup logic or multi-call scripts.
+
+That’s why specialized tools such as Lantstool's Account Cleaner or the CLI-based method are recommended for clearing contract state — especially when dealing with contracts that need to be reinitialized, redeployed cleanly, or reset to a clean state.
+
+---
+
+## Methods for cleaning contract state
+There are two available methods for clearing the state of a smart contract in NEAR using:
+- Account Cleaner utility in the [Lantstool](https://app.lantstool.dev/) application, which is available only for mainnet
+- NEAR CLI, which can be used across all networks, including mainnet, testnet, and local environments
+
+## Account Cleaner
+
+To simplify the process of removing large contract state from a NEAR smart contract, the Lantstool application offers a convenient tool called Account Cleaner:
+
+1. Open the [Lantstool](https://app.lantstool.dev/) app
+2. Navigate to the "Utils" section in the sidebar
+3. Select "Account Cleaner"
+4. Choose "Clear Contract State"
+5. Click the "Clear Contract State" button
+
+![lantstool](/docs/assets/lantstool/lantstool-near_protocol-utils-clear_contract_state.png)
+
+After the contract state is successfully cleared, you will see a confirmation message in the logs:
+<p>"Operation completed successfully"</p>
+
+<details>
+<summary> Example logs </summary>
+
+![lantstool](/docs/assets/lantstool/lantstool-near_protocol-utils-clear_contract_state-logs.png)
+
+</details>
+
+:::tip Want to see it in action?
+
+Watch a short demo video here: [Account Cleaner](https://www.youtube.com/watch?v=84OlJric7lk&t=9s)
+
+:::
+
+:::note
+The Clear State feature in [Lantstool](https://app.lantstool.dev/) is currently available only on NEAR Mainnet.
+:::
+
+---
+
+## Using CLI to clean contract state
 
 This JavaScript CLI tool deploys a [`state-cleanup.wasm`](https://github.com/near-examples/near-clear-state/blob/main/contractWasm/state_cleanup.wasm) contract replacing the current one, and then uses the new contract to clean up the account's state, so you can easily redeploy a new contract or use the account in any other way.
 
@@ -27,9 +86,7 @@ Check the GitHub repository and learn more about the [State Cleanup tool](https:
 
 
 ---
-
-## How to use
-
+### How to use
 
 ### Requirements
 
@@ -94,7 +151,7 @@ near view-state <account-name.testnet>
 
 ---
 
-## Troubleshooting
+### Troubleshooting
 
 If your contract state is large, depending on the RPC node, you may get the error:
 
